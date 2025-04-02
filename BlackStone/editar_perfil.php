@@ -78,8 +78,12 @@ $id_url = $urlArray[1];
                         <div class="col-md-6">
                           <div class="form-group row">
                             <label class="col-sm-3 col-form-label"><?php echo lang("Change password");?></label>
+
+
                             <div class="col-sm-9">
-                              <input type="text" class="form-control" id="pass" name="pass"  value="" style="color:white;">
+                              <input type="text" class="form-control" id="oldpass" name="oldpass"  placeholder="oldpassword" style="color:white;">
+                              <input type="text" class="form-control" id="pass" name="pass"  placeholder="newpassword" style="color:white;">
+                              
                             </div>
                           </div>
                         </div>
@@ -93,18 +97,31 @@ $id_url = $urlArray[1];
             </div>
 
             <?php
-    
-            if (isset($_POST['submit'])){
-
-              $pass = htmlspecialchars($_POST['pass'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-              $contra_hash = password_hash($pass, PASSWORD_DEFAULT);
-
-              $sentencia = "UPDATE `usuarios` SET `contra`='$contra_hash' WHERE id=1";
-              $consulta = mysqli_query($conexion, $sentencia)or die("Error de consulta");
-
-              echo "<script>alert('Saved')</script>";
-            }
-            ?>
+              if (isset($_POST['submit'])) {
+            
+                $oldpass = htmlspecialchars($_POST['oldpass'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                
+                $oldpassdb_query = "SELECT contra FROM usuarios WHERE id=1";
+                $result_query = mysqli_query($conexion, $oldpassdb_query) or die("Error de consulta");
+                $fila = mysqli_fetch_assoc($result_query);
+                $contrasenadb = $fila['contra'];
+                
+                $pass = htmlspecialchars($_POST['pass'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                
+                if (!password_verify($oldpass, $contrasenadb)) {
+                    echo "<script>alert('Old password is incorrect')</script>";
+                } 
+                else if (password_verify($pass, $contrasenadb)) {
+                    echo "<script>alert('Can not repeat same password')</script>";
+                }
+                else {
+                    $contra_hash = password_hash($pass, PASSWORD_DEFAULT);
+                    $sentencia = "UPDATE `usuarios` SET `contra`='$contra_hash' WHERE id=1";
+                    $consulta = mysqli_query($conexion, $sentencia) or die("Error de consulta");
+                    echo "<script>alert('Saved')</script>";
+                }
+              }
+                ?>
 
           <!-- content-wrapper ends -->
           <!-- partial:partials/_footer.html -->
